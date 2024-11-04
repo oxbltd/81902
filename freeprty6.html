@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Question</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 60%;
+            max-width: 600px;
+            text-align: center;
+        }
+        .question-box, .response-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .options {
+            margin-top: 10px;
+        }
+        .options button {
+            margin-right: 10px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .link-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .link-button:hover {
+            background-color: #0056b3;
+        }
+        .continue-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .continue-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="question-container" class="question-box">
+            <p>I love your outfit today! Have you got a minute to talk?</p>
+        </div>
+
+        <div id="options-container" class="options">
+            <button onclick="handleOptionClick('YES')">YES</button>
+            <button onclick="handleOptionClick('NO')">NO</button>
+        </div>
+
+        <div id="response-container" class="response-box" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Define the question flow and responses
+        const questionFlow = {
+            initialQuestion: {
+                question: "I love your outfit today! Have you got a minute to talk?",
+                options: {
+                    YES: {
+                        followUpQuestion: "Did you know that 78 people under the age of 25 were stabbed and murdered in 2023? 10 were aged under 16.",
+                        followUpOptions: {
+                            YES: {
+                                nextPage: true // Flag for the next page
+                            },
+                            NO: {
+                                nextPage: true // Flag for the next page
+                            }
+                        }
+                    },
+                    NO: {
+                        response: "No worries, maybe another time."
+                    }
+                }
+            }
+        };
+
+        // Handle option clicks and flow through the question and response system
+        function handleOptionClick(selectedOption) {
+            const questionData = questionFlow.initialQuestion;
+
+            // Clear the response container when changing answers
+            const responseContainer = document.getElementById("response-container");
+            responseContainer.style.display = "none";
+            responseContainer.innerHTML = '';
+
+            if (selectedOption === 'YES') {
+                // Display follow-up question
+                document.getElementById("question-container").innerHTML = `<p>${questionData.options.YES.followUpQuestion}</p>`;
+                loadFollowUpOptions(questionData.options.YES.followUpOptions);
+            } else if (selectedOption === 'NO') {
+                // Display the response for 'NO'
+                showResponse(questionData.options.NO.response);
+            }
+        }
+
+        // Handle follow-up question options
+        function loadFollowUpOptions(options) {
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = ''; // Clear old options
+
+            Object.keys(options).forEach(option => {
+                const button = document.createElement("button");
+                button.innerText = option;
+                button.onclick = () => handleFollowUpOptionClick(option, options);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // Handle follow-up responses and next question
+        function handleFollowUpOptionClick(selectedOption, options) {
+            if (options[selectedOption].nextPage) {
+                // Show the statement on the next page
+                showStatementPage();
+            }
+        }
+
+        // Show statement page
+        function showStatementPage() {
+            const statement = "The Ben Kinsella Trust helps educate these young people and combat knife crime in the UK.";
+            const questionContainer = document.getElementById("question-container");
+            const optionsContainer = document.getElementById("options-container");
+            const responseContainer = document.getElementById("response-container");
+
+            questionContainer.innerHTML = `<p>${statement}</p>`;
+            optionsContainer.innerHTML = ''; // Clear options
+
+            const continueButton = document.createElement("button");
+            continueButton.className = 'continue-button';
+            continueButton.innerText = 'Continue';
+            continueButton.onclick = () => showDonationQuestion();
+            optionsContainer.appendChild(continueButton);
+        }
+
+        // Show donation question
+        function showDonationQuestion() {
+            const donationQuestion = "I’m not asking for you to sign up to anything but just for a small donation to help The Ben Kinsella Trust achieve keeping young people safe. Is this something you're able to do?";
+            const questionContainer = document.getElementById("question-container");
+            questionContainer.innerHTML = `<p>${donationQuestion}</p>`;
+            loadDonationOptions();
+        }
+
+        // Load donation options
+        function loadDonationOptions() {
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = ''; // Clear old options
+
+            const options = {
+                YES: {
+                    response: "Great",
+                    link: {
+                        text: "Donate Now",
+                        url: "https://benkinsella.org.uk/donate/"
+                    }
+                },
+                NO: {
+                    response: "No worries, maybe another time."
+                }
+            };
+
+            Object.keys(options).forEach(option => {
+                const button = document.createElement("button");
+                button.innerText = option;
+                button.onclick = () => handleFinalOptionClick(option, options);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // Handle final responses and the donation link
+        function handleFinalOptionClick(selectedOption, options) {
+            const selectedData = options[selectedOption];
+            showResponse(selectedData.response);
+
+            // If a donation link is provided, display it
+            if (selectedData.link) {
+                const responseContainer = document.getElementById("response-container");
+                const linkButton = document.createElement("a");
+                linkButton.href = selectedData.link.url;
+                linkButton.className = 'link-button';
+                linkButton.innerText = selectedData.link.text;
+                responseContainer.appendChild(linkButton);
+            }
+        }
+
+        // Utility to show responses in the response container
+        function showResponse(responseText) {
+            const responseContainer = document.getElementById("response-container");
+            responseContainer.style.display = "block";
+            responseContainer.innerHTML = `<p>${responseText}</p>`;
+        }
+    </script>
+</body>
+</html>
